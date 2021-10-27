@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/screens/login.dart';
+import 'package:flutter_app/screens/register.dart';
+import 'package:flutter_app/screens/categories.dart';
 
 void main() => runApp(const MyApp());
 
@@ -12,33 +15,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Login'),
-        ),
-        body: Column(
-          children: <Widget> [
-            const TextField(
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                  labelText: 'Email'
-              ),
-            ),
-            const TextField(
-              keyboardType: TextInputType.visiblePassword,
-              decoration: InputDecoration(
-                  labelText: 'Password'
-              ),
-            ),
-            ElevatedButton(
-                onPressed: () => print('login clicked'),
-                child: const Text('Login'),
-                style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 36)),
-            )
-          ],
-        ),
-      )
+      home: Login(),
+      routes: {
+        '/login': (context) => Login(),
+        '/register': (context) => Register(),
+        '/categories': (context) => Categories(),
+      },
     );
   }
 }
