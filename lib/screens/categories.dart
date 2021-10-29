@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,21 +15,44 @@ class Category {
 }
 
 class Categories extends StatefulWidget {
-
   @override
   _CategoriesState createState() => _CategoriesState();
 }
 
 class _CategoriesState extends State<Categories> {
   late Future<List<Category>> futureCategories;
+  final _formkey = GlobalKey<FormState>();
+  late Category selectedCategory;
+  final categoryNameController = TextEditingController();
 
   Future<List<Category>> fetchCategories() async {
-    http.Response response = await http
-        .get(Uri.parse('http://127.0.0.1:8000/api/categories'));
+    http.Response response =
+        await http.get(Uri.parse('http://10.0.2.2:8000/api/categories'));
 
     List categories = jsonDecode(response.body);
 
     return categories.map((category) => Category.fromJson(category)).toList();
+  }
+
+  Future updateCategory() async {
+    final form = _formkey.currentState;
+
+    if (!form!.validate()) {
+      return;
+    }
+
+    String uri ='http://10.0.2.2:8000/api/categories/' + selectedCategory.id.toString();
+
+    await http.put(
+        Uri.parse(uri),
+        headers: {
+          HttpHeaders.contentTypeHeader: 'application/json',
+          HttpHeaders.acceptHeader: 'application/json',
+        },
+        body: jsonEncode({ 'name': categoryNameController.text })
+    );
+
+    Navigator.pop(context);
   }
 
   @override
@@ -53,6 +77,42 @@ class _CategoriesState extends State<Categories> {
                 Category category = snapshot.data![index];
                 return ListTile(
                   title: Text(category.name),
+                  trailing: IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      selectedCategory = category;
+                      categoryNameController.text = category.name;
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Form(
+                              key: _formkey,
+                              child: Column(children: <Widget>[
+                                TextFormField(
+                                  controller: categoryNameController,
+                                  validator: (String? value) {
+                                    if (value!.isEmpty) {
+                                      return 'Enter category name';
+                                    }
+
+                                    return null;
+                                  },
+                                  decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: 'Category name'),
+                                ),
+                                ElevatedButton(
+                                    onPressed: () => updateCategory(),
+                                    child: const Text('Update'))
+                              ]),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 );
               },
             );
